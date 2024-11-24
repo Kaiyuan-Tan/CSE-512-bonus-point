@@ -21,5 +21,13 @@
         "description": "Amidst the information flood in which we are currently immersed, visualizations can be a well-placed treetop. The rise of big data has the potential to inform decisions, and visual representations can play a crucial intermediate role in our daily information consumption. Covers techniques and algorithms for creating effective visualizations based on principles from graphic design, visual art, perceptual psychology and cognitive science to enhance the understanding of complex data.",
         "credit": 3,
         "instructor": "Chirs Bryan"
+    },
+    {
+        "title": "Just For Test",
+        "code": "599",
+        "subject": "EEE",
+        "description": "Just for testing. Something ramdom. Meaningless. Don't care",
+        "credit": 3,
+        "instructor": "Andrew Wu"
     }
 ]
