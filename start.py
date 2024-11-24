@@ -5,13 +5,11 @@ import json
 from sentence_transformers import SentenceTransformer
 
 
-# 连接信息
 cloud_id = "My_deployment:dXMtY2VudHJhbDEuZ2NwLmNsb3VkLmVzLmlvJDZlODAxZjQ5YzAwNDQ5MGRhNDFlOGM3Y2U0MmFmYmQxJGQ2ZTE2YjQ1OWNjMTRhNmZiNDE0ZGZmNmJmN2JjMjll"  # 从 Elastic Cloud 控制台获取
 api_key = "TzVkMldKTUJDVjk5bTVXZVFFeGg6LVpiZk04UFZUUE95QXpjbE9VZUttdw=="
 url = "https://raw.githubusercontent.com/Kaiyuan-Tan/CSE-512-bonus-point/refs/heads/main/data.json"
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
-# 创建 Elasticsearch 客户端
 client = Elasticsearch(
     cloud_id=cloud_id,
     api_key=api_key
