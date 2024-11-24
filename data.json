@@ -1,0 +1,25 @@
+[
+    {
+        "title": "Distributed Database Systems",
+        "code": "512",
+        "subject": "CSE",
+        "description": "Distributed database design, query processing, and transaction processing. Distributed database architectures and interoperability. Emerging technology.",
+        "credit": 3,
+        "instructor": "Bharatesh Chakravarthi"
+    },
+    {
+        "title": "Fundamentals of Statistical Learning and Pattern Recognition",
+        "code": "569",
+        "subject": "CSE",
+        "description": "Concepts of statistical pattern recognition, Bayesian decision theory, parameter estimation, discriminant analysis, basics of artificial neural networks, basics of data clustering. Knowledge of college-level calculus, linear algebra, basic probability theory and proficiency in computer programming is necessary to be successful in this course.",
+        "instructor": "Baoxin Li"
+    },
+    {
+        "title": "Data Visualization",
+        "code": "578",
+        "subject": "CSE",
+        "description": "Amidst the information flood in which we are currently immersed, visualizations can be a well-placed treetop. The rise of big data has the potential to inform decisions, and visual representations can play a crucial intermediate role in our daily information consumption. Covers techniques and algorithms for creating effective visualizations based on principles from graphic design, visual art, perceptual psychology and cognitive science to enhance the understanding of complex data.",
+        "credit": 3,
+        "instructor": "Chirs Bryan"
+    }
+]

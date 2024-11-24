@@ -10,15 +10,31 @@ client = Elasticsearch(
     cloud_id=cloud_id,
     api_key=api_key
 )
+index_name = "course"
+if not client.indices.exists(index=index_name):
+    mappings = {
+        "properties": {
+            "title_vector": {
+                "type": "dense_vector",
+                "dims": 384,
+                "index": "true",
+                "similarity": "cosine",
+            }
+        }
+    }
+    client.indices.create(index=index_name)
+    with open('Amazon\data.json','r') as file:
+        id = 0
+        for line in file:
+            data = json.loads(line)
+            # Upload each document in the JSON data to Elasticsearch
+            resp = client.index(index=index_name, id=id, body=data)
+            # print(f"Document {id} indexed: {resp['result']}")
+            id += 1
 app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "<h1>Welcome to my Flask server!</h1>"
-
-@app.route("/start")
-def elastic_search():
-    # 测试连接
     try:
         info = client.info()
         print("Connected to Elasticsearch:", info)
