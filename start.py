@@ -1,5 +1,5 @@
 from elasticsearch import Elasticsearch
-from flask import Flask, request
+from flask import Flask, jsonify, request
 from urllib.request import urlopen
 import json
 from sentence_transformers import SentenceTransformer
@@ -14,17 +14,17 @@ client = Elasticsearch(
     cloud_id=cloud_id,
     api_key=api_key
 )
-index_name = "course"
-if client.indices.exists(index=index_name):
-    client.indices.delete(index=index_name)
-if not client.indices.exists(index=index_name):
+INDEX_NAME = "course"
+if client.indices.exists(index=INDEX_NAME):
+    client.indices.delete(index=INDEX_NAME)
+if not client.indices.exists(index=INDEX_NAME):
     mappings = {
         "properties": {
             "title": {
-                "type": "keyword",
+                "type": "text",
             },
             "code": {
-                "type": "keyword",
+                "type": "integer",
             },
             "subject": {
                 "type": "keyword",
@@ -34,21 +34,21 @@ if not client.indices.exists(index=index_name):
                 "dims": 384,
             },
             "instructor": {
-                "type": "keyword",
+                "type": "text",
             },    
         }
     }
     response = urlopen(url)
     courses = json.loads(response.read())
     operations = []
-    client.indices.create(index=index_name, mappings=mappings)
+    client.indices.create(index=INDEX_NAME, mappings=mappings)
     for course in courses:
-        operations.append({"index": {"_index": index_name}})
+        operations.append({"index": {"_index": INDEX_NAME}})
         # Transforming the title into an embedding using the model
         course["description_vector"] = model.encode(course["description"]).tolist()
         operations.append(course)
-    client.bulk(index=index_name, operations=operations, refresh=True)
-
+    result = client.bulk(index=INDEX_NAME, operations=operations, refresh=True)
+    print(result)
 
 def pretty_response(response):
     outputs = []
@@ -57,12 +57,14 @@ def pretty_response(response):
     else:
         for hit in response["hits"]["hits"]:
             score = hit["_score"]
-            title = hit["_source"]["title"]
-            code = hit["_source"]["code"]
-            subject = hit["_source"]["subject"]
-            description = hit["_source"]["description"]
-            instructor = hit["_source"]["instructor"]
-            pretty_output = f"Title: {title}; Number: {subject} {code}; Description: {description}; Instructor: {instructor}"
+            pretty_output = {
+                "title": hit["_source"]["title"],
+                "code": hit["_source"]["code"],
+                "subject": hit["_source"]["subject"],
+                "description": hit["_source"]["description"],
+                "instructor": hit["_source"]["instructor"],
+                "credit": hit["_source"]["credit"]
+            }
             outputs.append(pretty_output)
     return outputs
 app = Flask(__name__)
@@ -76,19 +78,69 @@ def home():
         print("Error connecting to Elasticsearch:", e)
     return f"{info}"
 
-@app.route("/search")
+@app.route("/search", methods=['GET'])
 def search():
-    query = request.args.get("query")  # 获取 'query' 参数
-    response = client.search(
-        index="course",
-        knn={
-            "field": "description_vector",
-            "query_vector": model.encode(query),
-            "k": 10,
-            "num_candidates": 100,
-        },
-    )
-    return pretty_response(response)
+    description = request.args.get("description")  # get parameter
+    code = request.args.get("code") 
+    title = request.args.get("title") 
+    subject = request.args.get("subject") 
+    instructor = request.args.get("instructor") 
+
+    if subject and code:
+        query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {"term": {"subject": subject}},
+                        {"term": {"code": code}}
+                    ]
+                }
+            }
+        }
+        response = client.search(index=INDEX_NAME, body=query)
+    elif subject:
+        query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {"term": {"subject": subject}}
+                    ]
+                }
+            }
+        }
+        response = client.search(index=INDEX_NAME, body=query)
+    elif title:
+        query = {
+            "query": {
+                "match": {
+                    "title":title
+                }
+            }
+        }
+        response = client.search(index=INDEX_NAME, body=query)
+    elif instructor:
+        query = {
+            "query": {
+                "match": {
+                    "instructor":instructor
+                }
+            }
+        }
+        response = client.search(index=INDEX_NAME, body=query)
+    elif description:
+        response = client.search(
+            index=INDEX_NAME,
+            knn={
+                "field": "description_vector",
+                "query_vector": model.encode(description),
+                "k": 10,
+                "num_candidates": 100,
+            },
+        )
+    else:
+        return ({"message": "You did not provide any parameter"})
+    # return pretty_response(response)
+    return jsonify({"message": f"User registered successfully, data: {pretty_response(response)}"}), 200
 
 if __name__ == "__main__":
     app.run(port=8000)

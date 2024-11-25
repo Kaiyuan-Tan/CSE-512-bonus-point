@@ -12,7 +12,8 @@
         "code": "569",
         "subject": "CSE",
         "description": "Concepts of statistical pattern recognition, Bayesian decision theory, parameter estimation, discriminant analysis, basics of artificial neural networks, basics of data clustering. Knowledge of college-level calculus, linear algebra, basic probability theory and proficiency in computer programming is necessary to be successful in this course.",
-        "instructor": "Baoxin Li"
+        "instructor": "Baoxin Li",
+        "credit": 3
     },
     {
         "title": "Data Visualization",
