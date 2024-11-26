@@ -15,8 +15,8 @@ client = Elasticsearch(
     api_key=api_key
 )
 INDEX_NAME = "course"
-if client.indices.exists(index=INDEX_NAME):
-    client.indices.delete(index=INDEX_NAME)
+# if client.indices.exists(index=INDEX_NAME):
+    # client.indices.delete(index=INDEX_NAME)
 if not client.indices.exists(index=INDEX_NAME):
     mappings = {
         "properties": {
@@ -53,7 +53,7 @@ if not client.indices.exists(index=INDEX_NAME):
 def pretty_response(response):
     outputs = []
     if len(response["hits"]["hits"]) == 0:
-        print("Your search returned no results.")
+        return("Your search returned no results.")
     else:
         for hit in response["hits"]["hits"]:
             score = hit["_score"]
@@ -81,66 +81,46 @@ def home():
 @app.route("/search", methods=['GET'])
 def search():
     description = request.args.get("description")  # get parameter
+    response = client.search(
+        index=INDEX_NAME,
+        knn={
+            "field": "description_vector",
+            "query_vector": model.encode(description),
+            "k": 10,
+            "num_candidates": 100,
+        },
+    )
+    # return pretty_response(response)
+    return jsonify({"message": f"Get data successfully", "data": pretty_response(response)}), 200
+
+@app.route("/filter", methods=['GET'])
+def find():
     code = request.args.get("code") 
     title = request.args.get("title") 
     subject = request.args.get("subject") 
     instructor = request.args.get("instructor") 
+    filter = []
 
-    if subject and code:
-        query = {
-            "query": {
-                "bool": {
-                    "must": [
-                        {"term": {"subject": subject}},
-                        {"term": {"code": code}}
-                    ]
-                }
+    if subject:
+        filter.append({"term": {"subject": subject}})
+    if code:
+        filter.append({"term": {"code": code}})
+    if title:
+        filter.append({"match": {"title": title}})
+    if instructor:
+        filter.append({"match": {"instructor": instructor}})
+
+    query = {
+        "query": {
+            "bool": {
+                "filter": filter
             }
         }
-        response = client.search(index=INDEX_NAME, body=query)
-    elif subject:
-        query = {
-            "query": {
-                "bool": {
-                    "must": [
-                        {"term": {"subject": subject}}
-                    ]
-                }
-            }
-        }
-        response = client.search(index=INDEX_NAME, body=query)
-    elif title:
-        query = {
-            "query": {
-                "match": {
-                    "title":title
-                }
-            }
-        }
-        response = client.search(index=INDEX_NAME, body=query)
-    elif instructor:
-        query = {
-            "query": {
-                "match": {
-                    "instructor":instructor
-                }
-            }
-        }
-        response = client.search(index=INDEX_NAME, body=query)
-    elif description:
-        response = client.search(
-            index=INDEX_NAME,
-            knn={
-                "field": "description_vector",
-                "query_vector": model.encode(description),
-                "k": 10,
-                "num_candidates": 100,
-            },
-        )
-    else:
-        return ({"message": "You did not provide any parameter"})
-    # return pretty_response(response)
-    return jsonify({"message": f"User registered successfully, data: {pretty_response(response)}"}), 200
+    }
+    response = client.search(index=INDEX_NAME, body=query)
+    return jsonify({"message": f"Get data successfully", "data": pretty_response(response)}), 200
+
+
 
 if __name__ == "__main__":
     app.run(port=8000)
