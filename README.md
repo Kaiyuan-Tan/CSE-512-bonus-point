@@ -2,6 +2,8 @@
 
 An application for searching classes in ASU. Built with Elasticsearch for database, Flask for backend, Web programming(HTML5, JavaScript, CSS) for frontend.
 
+![alt text](img.png)``
+
 ## Major Functions
 - Semantic search —— Search courses based on user's description.
 - Advanced search —— Search for content by filtering on criteria (includes subject, code, title, instructor).
