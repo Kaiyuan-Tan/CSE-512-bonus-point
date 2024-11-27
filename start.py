@@ -1,5 +1,5 @@
 from elasticsearch import Elasticsearch
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory, render_template
 from urllib.request import urlopen
 import json
 from sentence_transformers import SentenceTransformer
@@ -74,12 +74,7 @@ CORS(app)
 
 @app.route("/")
 def home():
-    try:
-        info = client.info()
-        print("Connected to Elasticsearch:", info)
-    except Exception as e:
-        print("Error connecting to Elasticsearch:", e)
-    return f"{info}"
+    return render_template('index.html')
 
 @app.route("/search", methods=['GET'])
 def search():
@@ -130,4 +125,5 @@ if __name__ == "__main__":
     # context = ('ssl\certificate.crt', 'ssl\private.key')
     # app.run(host="0.0.0.0",port=31002, ssl_context=context)
     app.run(host="0.0.0.0",port=31002)
+    # app.run(port=31002)
 
