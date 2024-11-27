@@ -3,6 +3,7 @@ from flask import Flask, jsonify, request
 from urllib.request import urlopen
 import json
 from sentence_transformers import SentenceTransformer
+from flask_cors import CORS
 
 
 cloud_id = "My_deployment:dXMtY2VudHJhbDEuZ2NwLmNsb3VkLmVzLmlvJDZlODAxZjQ5YzAwNDQ5MGRhNDFlOGM3Y2U0MmFmYmQxJGQ2ZTE2YjQ1OWNjMTRhNmZiNDE0ZGZmNmJmN2JjMjll"  # 从 Elastic Cloud 控制台获取
@@ -68,6 +69,7 @@ def pretty_response(response):
             outputs.append(pretty_output)
     return outputs
 app = Flask(__name__)
+CORS(app)
 
 @app.route("/")
 def home():
@@ -123,4 +125,5 @@ def find():
 
 
 if __name__ == "__main__":
-    app.run(port=8000)
+    # app.run(port=8000)
+    app.run(host="0.0.0.0",port=31002)
