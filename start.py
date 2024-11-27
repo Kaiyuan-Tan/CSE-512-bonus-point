@@ -4,53 +4,12 @@ from urllib.request import urlopen
 import json
 from sentence_transformers import SentenceTransformer
 from flask_cors import CORS
-# from OpenSSL import SSL
+import yaml
 
-
-cloud_id = "My_deployment:dXMtY2VudHJhbDEuZ2NwLmNsb3VkLmVzLmlvJDZlODAxZjQ5YzAwNDQ5MGRhNDFlOGM3Y2U0MmFmYmQxJGQ2ZTE2YjQ1OWNjMTRhNmZiNDE0ZGZmNmJmN2JjMjll"  # 从 Elastic Cloud 控制台获取
-api_key = "TzVkMldKTUJDVjk5bTVXZVFFeGg6LVpiZk04UFZUUE95QXpjbE9VZUttdw=="
-url = "https://raw.githubusercontent.com/Kaiyuan-Tan/CSE-512-bonus-point/refs/heads/main/data.json"
-model = SentenceTransformer("all-MiniLM-L6-v2")
-
-client = Elasticsearch(
-    cloud_id=cloud_id,
-    api_key=api_key
-)
-INDEX_NAME = "course"
-# if client.indices.exists(index=INDEX_NAME):
-    # client.indices.delete(index=INDEX_NAME)
-if not client.indices.exists(index=INDEX_NAME):
-    mappings = {
-        "properties": {
-            "title": {
-                "type": "text",
-            },
-            "code": {
-                "type": "integer",
-            },
-            "subject": {
-                "type": "keyword",
-            }, 
-            "description_vector": {
-                "type": "dense_vector",
-                "dims": 384,
-            },
-            "instructor": {
-                "type": "text",
-            },    
-        }
-    }
-    response = urlopen(url)
-    courses = json.loads(response.read())
-    operations = []
-    client.indices.create(index=INDEX_NAME, mappings=mappings)
-    for course in courses:
-        operations.append({"index": {"_index": INDEX_NAME}})
-        # Transforming the title into an embedding using the model
-        course["description_vector"] = model.encode(course["description"]).tolist()
-        operations.append(course)
-    result = client.bulk(index=INDEX_NAME, operations=operations, refresh=True)
-    print(result)
+def load_config(file_path):
+    with open(file_path, 'r',encoding="utf-8") as file:
+        config = yaml.safe_load(file)
+    return config
 
 def pretty_response(response):
     outputs = []
@@ -69,6 +28,7 @@ def pretty_response(response):
             }
             outputs.append(pretty_output)
     return outputs
+
 app = Flask(__name__)
 CORS(app)
 
@@ -119,11 +79,53 @@ def find():
     return jsonify({"message": f"Get data successfully", "data": pretty_response(response)}), 200
 
 
-
 if __name__ == "__main__":
-    # app.run(port=8000)
-    # context = ('ssl\certificate.crt', 'ssl\private.key')
-    # app.run(host="0.0.0.0",port=31002, ssl_context=context)
-    app.run(host="0.0.0.0",port=31002)
-    # app.run(port=31002)
+    config = load_config("config.yaml")
+
+    cloud_id = config["cloud_id"]
+    api_key = config["api_key"]
+    url = config["url"]
+    INDEX_NAME = "course"
+
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+
+    client = Elasticsearch(
+        cloud_id=cloud_id,
+        api_key=api_key
+    )
+
+    if not client.indices.exists(index=INDEX_NAME):
+        mappings = {
+            "properties": {
+                "title": {
+                    "type": "text",
+                },
+                "code": {
+                    "type": "integer",
+                },
+                "subject": {
+                    "type": "keyword",
+                }, 
+                "description_vector": {
+                    "type": "dense_vector",
+                    "dims": 384,
+                },
+                "instructor": {
+                    "type": "text",
+                },    
+            }
+        }
+        response = urlopen(url)
+        courses = json.loads(response.read())
+        operations = []
+        client.indices.create(index=INDEX_NAME, mappings=mappings)
+        for course in courses:
+            operations.append({"index": {"_index": INDEX_NAME}})
+            # Transforming the title into an embedding using the model
+            course["description_vector"] = model.encode(course["description"]).tolist()
+            operations.append(course)
+        result = client.bulk(index=INDEX_NAME, operations=operations, refresh=True)
+        # print(result)
+
+    app.run(port=31002)
 

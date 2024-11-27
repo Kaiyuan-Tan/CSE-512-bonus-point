@@ -1,6 +1,6 @@
 const searchFields = ["subject", "code", "title", "instructor"];
-// API = "http://127.0.0.1:31002/"
-API = "http://121.41.33.45:31002/"
+  
+API = "http://127.0.0.1:31002/"
 
 container = d3.select("#search-container")
 
